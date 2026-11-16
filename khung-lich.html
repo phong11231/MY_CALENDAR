@@ -139,14 +139,26 @@
   footer{margin-top:20px; font-size:11.5px; color:var(--faint)}
 
   @media print{
-    body{background:#fff; color:#000}
-    .bar,.hint,.legend,footer,.eyebrow,.del{display:none!important}
-    .scroll{border:none; box-shadow:none; overflow:visible}
-    .grid{min-width:0}
-    .hcell{background:#e9ebfb!important; color:#222!important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
-    .block{-webkit-print-color-adjust:exact; print-color-adjust:exact}
-    .tn{-webkit-print-color-adjust:exact; print-color-adjust:exact}
-    .slot,.tcell{border-color:#bbb!important}
+    @page{size:landscape; margin:7mm}
+    html,body{background:#fff; color:#000}
+    .wrap{max-width:none; padding:0}
+    h1{font-size:17px; background:none; -webkit-text-fill-color:#2a2f8a; color:#2a2f8a; margin:0 0 6px}
+    .bar,.hint,.legend,.progress,footer,.eyebrow,.del,.chk{display:none!important}
+    .scroll{border:1px solid #9aa; box-shadow:none; overflow:visible; border-radius:0}
+    .grid{min-width:0; width:100%;
+      grid-template-columns:58px repeat(7,1fr);
+      grid-template-rows:auto repeat(17,33px); break-inside:avoid}
+    .hcell{position:static; background:#e9ebfb!important; color:#222!important;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:4px 2px; font-size:9.5px; border-right:1px solid #bbb}
+    .hcell .dd{font-size:7.5px}
+    .tcell{position:static; padding:2px 5px; border-color:#ccc!important}
+    .tcell .tm{font-size:7px}
+    .tn{width:15px; height:15px; font-size:8.5px; margin-bottom:1px; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    .slot{min-height:0; border-color:#d4d4d4!important}
+    .block{-webkit-print-color-adjust:exact; print-color-adjust:exact; margin:1px; padding:2px 5px; border-radius:5px; box-shadow:none; gap:1px}
+    .block .brange{font-size:7px; padding-left:0; opacity:.9}
+    .block .btext{font-size:10px; text-shadow:none; min-height:0; font-weight:800}
+    .block.done{opacity:1}
   }
 </style>
 
