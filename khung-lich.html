@@ -239,7 +239,8 @@
   var weekSel=document.getElementById("weekSel");
   var profileSel=document.getElementById("profileSel");
   var state={week:iso(mondayOf(new Date())), profile:"Mặc định"};
-  try{var cur=JSON.parse(localStorage.getItem(NS+"current")||"{}"); if(cur.week)state.week=cur.week; if(cur.profile)state.profile=cur.profile;}catch(e){}
+  // Luôn mở ở tuần hiện tại (tuần chứa hôm nay). Chỉ nhớ người dùng đã chọn.
+  try{var cur=JSON.parse(localStorage.getItem(NS+"current")||"{}"); if(cur.profile)state.profile=cur.profile;}catch(e){}
 
   function profiles(){try{var p=JSON.parse(localStorage.getItem(NS+"profiles")||"null"); if(Array.isArray(p)&&p.length)return p;}catch(e){} return ["Mặc định"];}
   function saveProfiles(list){try{localStorage.setItem(NS+"profiles",JSON.stringify(list));}catch(e){}}
