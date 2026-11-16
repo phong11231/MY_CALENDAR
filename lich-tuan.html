@@ -1,0 +1,389 @@
+<title>Lịch Tuần Của Phong</title>
+<meta name="description" content="Thời khóa biểu tuần 16–22/11/2026 kèm giờ tiết HUTECH chính xác và kế hoạch tự học Linux." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#eef0f4; --surface:#ffffff; --surface-2:#f7f8fb;
+    --ink:#191c24; --muted:#565e70; --faint:#878e9f;
+    --border:#e1e4ea; --border-strong:#ccd1db;
+    --school:#3a44c9; --school-soft:#e9eafb;
+    --linux:#bd6f16; --linux-soft:#fbf0e1;
+    --eng:#0d897c; --eng-soft:#e1f3f0;
+    --read:#7a50bd; --read-soft:#eee7f9;
+    --rest:#687084; --rest-soft:#edeff3;
+    --gold:#caa227;
+    --shadow:0 1px 2px rgba(20,24,40,.05),0 4px 14px rgba(20,24,40,.06);
+    --shadow-lift:0 3px 8px rgba(20,24,40,.09),0 14px 34px rgba(20,24,40,.12);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1218; --surface:#161a22; --surface-2:#1d222c;
+      --ink:#ecedf2; --muted:#9aa1b2; --faint:#6a7283;
+      --border:#262c38; --border-strong:#353d4c;
+      --school:#8b93f5; --school-soft:#20243e;
+      --linux:#e5a24e; --linux-soft:#33260f;
+      --eng:#3bc0b1; --eng-soft:#0f3230;
+      --read:#b492ea; --read-soft:#241a3a;
+      --rest:#9aa1b2; --rest-soft:#20242e;
+      --gold:#e3c054;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.4);
+      --shadow-lift:0 4px 12px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1218; --surface:#161a22; --surface-2:#1d222c;
+    --ink:#ecedf2; --muted:#9aa1b2; --faint:#6a7283;
+    --border:#262c38; --border-strong:#353d4c;
+    --school:#8b93f5; --school-soft:#20243e;
+    --linux:#e5a24e; --linux-soft:#33260f;
+    --eng:#3bc0b1; --eng-soft:#0f3230;
+    --read:#b492ea; --read-soft:#241a3a;
+    --rest:#9aa1b2; --rest-soft:#20242e;
+    --gold:#e3c054;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 6px 20px rgba(0,0,0,.4);
+    --shadow-lift:0 4px 12px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.55);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:clamp(20px,4vw,44px) clamp(16px,3vw,32px) 64px}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+  /* ---- Header ---- */
+  header{margin-bottom:28px}
+  .eyebrow{
+    font-size:12px; font-weight:700; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--school); margin:0 0 10px;
+  }
+  h1{
+    font-size:clamp(28px,5vw,46px); font-weight:800; letter-spacing:-.02em;
+    line-height:1.04; margin:0 0 12px; text-wrap:balance;
+  }
+  .sub{font-size:clamp(15px,2vw,17px); color:var(--muted); margin:0; max-width:60ch}
+  .sub b{color:var(--ink); font-weight:700}
+
+  /* ---- Golden window banner ---- */
+  .banner{
+    margin:24px 0 8px; padding:20px 22px; border-radius:16px;
+    background:linear-gradient(135deg,var(--linux-soft),var(--surface));
+    border:1px solid var(--border); border-left:4px solid var(--gold);
+    box-shadow:var(--shadow); display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .banner .icon{font-size:26px; line-height:1}
+  .banner .btxt{flex:1; min-width:240px}
+  .banner h2{margin:0 0 4px; font-size:17px; font-weight:800; letter-spacing:-.01em}
+  .banner p{margin:0; font-size:14.5px; color:var(--muted)}
+  .stats{display:flex; gap:10px; flex-wrap:wrap}
+  .stat{
+    background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:10px 16px; min-width:92px; text-align:center;
+  }
+  .stat .n{font-size:24px; font-weight:800; letter-spacing:-.02em; display:block}
+  .stat .l{font-size:11px; color:var(--faint); text-transform:uppercase; letter-spacing:.06em}
+
+  /* ---- Section titles ---- */
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin:40px 0 16px}
+  .sec-head h3{margin:0; font-size:19px; font-weight:800; letter-spacing:-.01em}
+  .sec-head .hint{font-size:13px; color:var(--faint)}
+  .rule{height:1px; background:var(--border); flex:1; align-self:center}
+
+  /* ---- Week grid ---- */
+  .week{
+    display:grid; gap:12px;
+    grid-template-columns:repeat(7,minmax(150px,1fr));
+  }
+  @media(max-width:920px){
+    .week{grid-auto-flow:column; grid-auto-columns:78%; grid-template-columns:none;
+      overflow-x:auto; scroll-snap-type:x proximity; padding-bottom:10px; margin:0 -4px}
+    .day{scroll-snap-align:start}
+  }
+  .day{
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    padding:12px 12px 14px; display:flex; flex-direction:column; gap:9px;
+    box-shadow:var(--shadow);
+  }
+  .day.today{border-color:var(--school); box-shadow:var(--shadow-lift)}
+  .day.weekend{background:var(--surface-2)}
+  .dhead{display:flex; align-items:baseline; justify-content:space-between; gap:8px;
+    padding-bottom:9px; border-bottom:1px solid var(--border)}
+  .dname{font-weight:700; font-size:14px}
+  .ddate{font-size:12px; color:var(--faint)}
+  .day.today .dname{color:var(--school)}
+  .tag-today{font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em;
+    color:#fff; background:var(--school); padding:2px 7px; border-radius:999px}
+
+  /* ---- Blocks ---- */
+  .block{
+    border-radius:10px; padding:9px 11px; border:1px solid var(--border);
+    background:var(--surface-2); display:flex; flex-direction:column; gap:3px;
+  }
+  .block .time{font-size:12px; font-weight:700}
+  .block .name{font-size:13.5px; font-weight:600; line-height:1.3}
+  .block .meta{font-size:11.5px; color:var(--muted)}
+  .block.class{background:var(--school); border-color:var(--school); color:#fff; box-shadow:var(--shadow)}
+  .block.class .meta{color:rgba(255,255,255,.82)}
+  .block.class .pill{background:rgba(255,255,255,.2); color:#fff}
+  .pill{display:inline-block; align-self:flex-start; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.05em; padding:2px 7px; border-radius:999px; margin-top:1px}
+  .block.linux{border-left:3px solid var(--linux)} .block.linux .pill{background:var(--linux-soft); color:var(--linux)}
+  .block.eng{border-left:3px solid var(--eng)} .block.eng .pill{background:var(--eng-soft); color:var(--eng)}
+  .block.read{border-left:3px solid var(--read)} .block.read .pill{background:var(--read-soft); color:var(--read)}
+  .block.rest{border-left:3px solid var(--rest); background:var(--rest-soft)} .block.rest .pill{background:var(--surface); color:var(--rest)}
+  .block.linux .time,.block.eng .time,.block.read .time,.block.rest .time{color:var(--ink)}
+
+  .daily-note{font-size:11px; color:var(--faint); text-align:center; margin-top:auto; padding-top:4px}
+
+  /* ---- Legend ---- */
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:16px; font-size:13px; color:var(--muted)}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:11px; height:11px; border-radius:3px; display:inline-block}
+
+  /* ---- Period reference table ---- */
+  .ref-wrap{overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow)}
+  table.ref{border-collapse:collapse; width:100%; min-width:560px; font-size:13.5px}
+  table.ref caption{text-align:left; padding:14px 16px 0; font-size:12px; color:var(--faint)}
+  table.ref th,table.ref td{padding:8px 14px; text-align:left; border-bottom:1px solid var(--border)}
+  table.ref thead th{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); font-weight:700}
+  table.ref tbody tr:last-child td{border-bottom:none}
+  table.ref .tt{font-weight:700}
+  table.ref .buoi{font-weight:700; color:var(--muted)}
+  table.ref tr.hl td{background:var(--school-soft)}
+  table.ref tr.hl .tt{color:var(--school)}
+  .hl-note{font-size:12px; color:var(--school); font-weight:600; white-space:nowrap}
+  .buoi-sang{color:var(--eng)} .buoi-chieu{color:var(--linux)} .buoi-toi{color:var(--read)}
+
+  footer{margin-top:40px; padding-top:18px; border-top:1px solid var(--border);
+    font-size:12.5px; color:var(--faint); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">HUTECH · Học kỳ 1 · 2026–2027</p>
+    <h1>Lịch tuần của Phong</h1>
+    <p class="sub"><b>16 – 22 / 11 / 2026.</b> Tuần này chỉ một buổi ở trường — phần còn lại là cửa sổ vàng để cày cho xong khóa Linux trước khi lịch bận trở lại từ 30/11.</p>
+  </header>
+
+  <div class="banner">
+    <span class="icon">🪙</span>
+    <div class="btxt">
+      <h2>Tuần vàng — tải trường cực nhẹ</h2>
+      <p>Chỉ <b>5 tiết / 1 buổi</b> (CMP170, chiều Thứ Năm). Dồn các buổi trống để học <b>Linux</b>. Từ 30/11 lịch lên lại ~20 tiết/tuần, nên tranh thủ ngay 2 tuần này.</p>
+    </div>
+    <div class="stats">
+      <div class="stat"><span class="n">5</span><span class="l">tiết tuần này</span></div>
+      <div class="stat"><span class="n">1</span><span class="l">buổi học</span></div>
+      <div class="stat"><span class="n mono">~20</span><span class="l">tiết từ 30/11</span></div>
+    </div>
+  </div>
+
+  <div class="sec-head">
+    <h3>Tuần 16 – 22 / 11</h3>
+    <span class="hint">Lịch trường cố định · gợi ý tự học lồng vào buổi trống</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="week">
+    <!-- Thứ 2 -->
+    <div class="day today">
+      <div class="dhead"><div><div class="dname">Thứ Hai</div><div class="ddate">16/11</div></div><span class="tag-today">Hôm nay</span></div>
+      <div class="block linux">
+        <span class="time mono">14:00 – 16:00</span>
+        <span class="name">Khóa Linux (Imran Afzal)</span>
+        <span class="meta">Cày tiếp từ mốc 28% · ghi chú lệnh mới</span>
+        <span class="pill">Tự học · chính</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">19:30 – 20:10</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="meta">ELSA + Duolingo · mục tiêu B1</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">22:00 – 22:20</span>
+        <span class="name">Đọc sách</span>
+        <span class="meta">Nhà Giả Kim · 10 trang</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Thứ 3 -->
+    <div class="day">
+      <div class="dhead"><div><div class="dname">Thứ Ba</div><div class="ddate">17/11</div></div></div>
+      <div class="block linux">
+        <span class="time mono">09:00 – 11:00</span>
+        <span class="name">Khóa Linux</span>
+        <span class="meta">Buổi sáng tập trung — phần permissions / user</span>
+        <span class="pill">Tự học · chính</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">14:00 – 14:40</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="meta">Cake · cụm từ thực tế</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">22:00 – 22:20</span>
+        <span class="name">Đọc sách</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Thứ 4 -->
+    <div class="day">
+      <div class="dhead"><div><div class="dname">Thứ Tư</div><div class="ddate">18/11</div></div></div>
+      <div class="block linux">
+        <span class="time mono">14:00 – 16:00</span>
+        <span class="name">Khóa Linux</span>
+        <span class="meta">Process · bash script cơ bản</span>
+        <span class="pill">Tự học · chính</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">19:30 – 20:10</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">22:00 – 22:20</span>
+        <span class="name">Đọc sách</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Thứ 5 -->
+    <div class="day">
+      <div class="dhead"><div><div class="dname">Thứ Năm</div><div class="ddate">19/11</div></div></div>
+      <div class="block eng">
+        <span class="time mono">09:00 – 09:40</span>
+        <span class="name">Tiếng Anh (buổi sáng)</span>
+        <span class="meta">Trước giờ lên trường</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block class">
+        <span class="time mono">12:30 – 16:40</span>
+        <span class="name">Lập trình trên môi trường Windows</span>
+        <span class="meta">CMP170 · Nhóm 08 · Phòng E1-03.03</span>
+        <span class="pill">Tiết 7 – 11 · Lịch trường</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">22:00 – 22:20</span>
+        <span class="name">Đọc sách</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Thứ 6 -->
+    <div class="day">
+      <div class="dhead"><div><div class="dname">Thứ Sáu</div><div class="ddate">20/11</div></div></div>
+      <div class="block rest">
+        <span class="time mono">cả ngày</span>
+        <span class="name">Ngày Nhà giáo VN</span>
+        <span class="meta">Có thể có hoạt động ở trường — kiểm tra lại</span>
+        <span class="pill">Ghi chú</span>
+      </div>
+      <div class="block linux">
+        <span class="time mono">14:00 – 16:00</span>
+        <span class="name">Khóa Linux</span>
+        <span class="meta">Nếu rảnh — đẩy cho gần xong</span>
+        <span class="pill">Tự học · chính</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">19:30 – 20:10</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Thứ 7 -->
+    <div class="day weekend">
+      <div class="dhead"><div><div class="dname">Thứ Bảy</div><div class="ddate">21/11</div></div></div>
+      <div class="block linux">
+        <span class="time mono">09:00 – 11:30</span>
+        <span class="name">Khóa Linux — buổi dài</span>
+        <span class="meta">Cuối tuần cày mạnh, mục tiêu chạm 100%</span>
+        <span class="pill">Tự học · chính</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">15:00 – 15:40</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">22:00 – 22:30</span>
+        <span class="name">Đọc sách</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+
+    <!-- Chủ nhật -->
+    <div class="day weekend">
+      <div class="dhead"><div><div class="dname">Chủ Nhật</div><div class="ddate">22/11</div></div></div>
+      <div class="block rest">
+        <span class="time mono">sáng</span>
+        <span class="name">Nhìn lại tuần</span>
+        <span class="meta">Linux tới đâu? Ghi 3 việc tuần sau</span>
+        <span class="pill">Ôn tập</span>
+      </div>
+      <div class="block eng">
+        <span class="time mono">15:00 – 15:40</span>
+        <span class="name">Tiếng Anh</span>
+        <span class="pill">Nền</span>
+      </div>
+      <div class="block read">
+        <span class="time mono">tối</span>
+        <span class="name">Đọc sách · nghỉ ngơi</span>
+        <span class="pill">Nền</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--school)"></span> Lịch trường (cố định)</span>
+    <span><span class="dot" style="background:var(--linux)"></span> Linux — tự học chính</span>
+    <span><span class="dot" style="background:var(--eng)"></span> Tiếng Anh — nền mỗi ngày</span>
+    <span><span class="dot" style="background:var(--read)"></span> Đọc sách — nền mỗi tối</span>
+    <span><span class="dot" style="background:var(--rest)"></span> Ôn tập / ghi chú</span>
+  </div>
+
+  <div class="sec-head">
+    <h3>Giờ tiết HUTECH</h3>
+    <span class="hint">Áp dụng từ năm học 2026–2027 · mỗi tiết 50 phút</span>
+    <span class="rule"></span>
+  </div>
+
+  <div class="ref-wrap">
+    <table class="ref">
+      <caption>Môn CMP170 của mày là <b>tiết 7 → 11</b> = <b>12:30 → 16:40</b> (dòng tô đậm).</caption>
+      <thead>
+        <tr><th>Buổi</th><th>Tiết</th><th>Bắt đầu</th><th>Kết thúc</th><th></th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="buoi buoi-sang" rowspan="6">Sáng</td><td class="tt mono">1</td><td class="mono">06:40</td><td class="mono">07:30</td><td></td></tr>
+        <tr><td class="tt mono">2</td><td class="mono">07:30</td><td class="mono">08:20</td><td></td></tr>
+        <tr><td class="tt mono">3</td><td class="mono">08:20</td><td class="mono">09:10</td><td></td></tr>
+        <tr><td class="tt mono">4</td><td class="mono">09:10</td><td class="mono">10:00</td><td></td></tr>
+        <tr><td class="tt mono">5</td><td class="mono">10:00</td><td class="mono">10:50</td><td></td></tr>
+        <tr><td class="tt mono">6</td><td class="mono">10:50</td><td class="mono">11:40</td><td></td></tr>
+        <tr class="hl"><td class="buoi buoi-chieu" rowspan="6">Chiều</td><td class="tt mono">7</td><td class="mono">12:30</td><td class="mono">13:20</td><td class="hl-note">◄ CMP170 bắt đầu</td></tr>
+        <tr class="hl"><td class="tt mono">8</td><td class="mono">13:20</td><td class="mono">14:10</td><td></td></tr>
+        <tr class="hl"><td class="tt mono">9</td><td class="mono">14:10</td><td class="mono">15:00</td><td></td></tr>
+        <tr class="hl"><td class="tt mono">10</td><td class="mono">15:00</td><td class="mono">15:50</td><td></td></tr>
+        <tr class="hl"><td class="tt mono">11</td><td class="mono">15:50</td><td class="mono">16:40</td><td class="hl-note">◄ CMP170 kết thúc</td></tr>
+        <tr><td class="tt mono">12</td><td class="mono">16:40</td><td class="mono">17:30</td><td></td></tr>
+        <tr><td class="buoi buoi-toi" rowspan="3">Tối</td><td class="tt mono">13</td><td class="mono">18:00</td><td class="mono">18:50</td><td></td></tr>
+        <tr><td class="tt mono">14</td><td class="mono">18:50</td><td class="mono">19:40</td><td></td></tr>
+        <tr><td class="tt mono">15</td><td class="mono">19:40</td><td class="mono">20:30</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    <span>Nguyễn Thế Phong · 24800600724 · Ngành CNTT</span>
+    <span>Giờ tiết theo thông báo HUTECH 2026–2027 · giờ tự học là gợi ý, chỉnh theo mày</span>
+  </footer>
+</div>

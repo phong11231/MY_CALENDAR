@@ -1,0 +1,207 @@
+<title>Khung Lịch Theo Tiết</title>
+<meta name="description" content="Bảng thời khóa biểu trống theo tiết HUTECH để tự điền — gõ trực tiếp, tự lưu, in được." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+  :root{
+    --bg:#eef0f4; --surface:#ffffff; --surface-2:#f6f7fa;
+    --ink:#191c24; --muted:#565e70; --faint:#8a91a2;
+    --border:#dde1e8; --border-strong:#c7cdd8;
+    --accent:#3a44c9; --accent-soft:#e9eafb;
+    --sang:#0d897c; --chieu:#bd6f16; --toi:#7a50bd;
+    --hover:#eef0fb;
+    --shadow:0 1px 2px rgba(20,24,40,.05),0 6px 18px rgba(20,24,40,.07);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f1218; --surface:#161a22; --surface-2:#1c212b;
+      --ink:#ecedf2; --muted:#9aa1b2; --faint:#687082;
+      --border:#283040; --border-strong:#3a4356;
+      --accent:#8b93f5; --accent-soft:#20243e;
+      --sang:#3bc0b1; --chieu:#e5a24e; --toi:#b492ea;
+      --hover:#20243a;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.45);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f1218; --surface:#161a22; --surface-2:#1c212b;
+    --ink:#ecedf2; --muted:#9aa1b2; --faint:#687082;
+    --border:#283040; --border-strong:#3a4356;
+    --accent:#8b93f5; --accent-soft:#20243e;
+    --sang:#3bc0b1; --chieu:#e5a24e; --toi:#b492ea;
+    --hover:#20243a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+  .wrap{max-width:1180px; margin:0 auto; padding:clamp(18px,3.5vw,38px) clamp(12px,2.5vw,28px) 56px}
+
+  .top{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:6px}
+  .eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 8px}
+  h1{font-size:clamp(24px,4vw,38px); font-weight:800; letter-spacing:-.02em; margin:0; line-height:1.05}
+  .week-label{margin:10px 0 0; font-size:14px; color:var(--muted)}
+  .week-label b{color:var(--ink)}
+  #wk{color:var(--ink); font-weight:700; border-bottom:1px dashed var(--border-strong); padding:1px 4px; border-radius:4px; outline:none; cursor:text}
+  #wk:focus{background:var(--accent-soft); border-bottom-color:var(--accent)}
+
+  .tools{display:flex; gap:9px; align-items:center}
+  button{font-family:inherit; font-size:13px; font-weight:600; cursor:pointer; border-radius:10px;
+    padding:9px 15px; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink);
+    box-shadow:var(--shadow); transition:transform .06s ease}
+  button:hover{border-color:var(--accent)} button:active{transform:translateY(1px)}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  .hint{font-size:13px; color:var(--faint); margin:14px 0 14px; display:flex; gap:8px; align-items:center}
+  .hint .k{display:inline-block; background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:1px 7px; font-size:12px}
+
+  .scroll{overflow-x:auto; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow)}
+  table{border-collapse:separate; border-spacing:0; width:100%; min-width:760px}
+  th,td{border-right:1px solid var(--border); border-bottom:1px solid var(--border)}
+  thead th{position:sticky; top:0; z-index:3; background:var(--accent); color:#fff;
+    font-size:13px; font-weight:700; padding:12px 8px; text-align:center; letter-spacing:.01em}
+  thead th:first-child{z-index:4; border-top-left-radius:14px}
+  thead th:last-child{border-right:none; border-top-right-radius:14px}
+  thead th.wknd{background:color-mix(in srgb,var(--accent) 78%, #000 22%)}
+
+  .timecol{position:sticky; left:0; z-index:2; background:var(--surface-2); width:92px; min-width:92px;
+    text-align:left; padding:7px 10px; vertical-align:middle}
+  tbody tr:nth-child(even) .timecol{background:var(--surface-2)}
+  .tn{display:inline-flex; align-items:center; justify-content:center; min-width:22px; height:22px;
+    border-radius:6px; font-weight:800; font-size:12.5px; color:#fff; margin-bottom:3px}
+  .tm{display:block; font-size:11px; color:var(--muted)}
+  tr.sang .tn{background:var(--sang)} tr.chieu .tn{background:var(--chieu)} tr.toi .tn{background:var(--toi)}
+  tr.sang .timecol{border-left:3px solid var(--sang)} tr.chieu .timecol{border-left:3px solid var(--chieu)} tr.toi .timecol{border-left:3px solid var(--toi)}
+
+  td.cell{padding:0; background:var(--surface); min-width:96px; vertical-align:top}
+  td.cell .edit{min-height:42px; padding:7px 9px; font-size:12.5px; line-height:1.35; outline:none; cursor:text; height:100%}
+  td.cell .edit:empty::before{content:""; }
+  td.cell:hover{background:var(--hover)}
+  td.cell .edit:focus{background:var(--accent-soft); box-shadow:inset 0 0 0 2px var(--accent)}
+  td.wknd{background:var(--surface-2)}
+  tr.band-end td,tr.band-end .timecol{border-bottom:2px solid var(--border-strong)}
+  tbody tr:last-child td:first-child{border-bottom-left-radius:14px}
+  tbody tr:last-child td:last-child{border-bottom-right-radius:14px}
+  td:last-child{border-right:none}
+
+  .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:14px; font-size:13px; color:var(--muted)}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:11px; height:11px; border-radius:4px}
+
+  footer{margin-top:22px; font-size:12px; color:var(--faint)}
+
+  @media print{
+    body{background:#fff; color:#000}
+    .tools,.hint,.legend,footer,.eyebrow{display:none!important}
+    .scroll{border:none; box-shadow:none; overflow:visible}
+    table{min-width:0} thead th{background:#eee!important; color:#000!important; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+    th,td{border-color:#999!important}
+    td.cell .edit{min-height:34px}
+    .tn{color:#000!important; background:#fff!important; border:1px solid #999}
+  }
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <p class="eyebrow">HUTECH · Khung trống · Tự điền</p>
+      <h1>Khung lịch theo tiết</h1>
+      <p class="week-label">Tuần: <span id="wk" contenteditable="true" spellcheck="false">16/11 – 22/11/2026</span></p>
+    </div>
+    <div class="tools">
+      <button class="primary" id="print">🖨️ In lịch</button>
+      <button id="clear">Xóa hết</button>
+    </div>
+  </div>
+
+  <p class="hint">Bấm vào ô trống rồi gõ nội dung — <span class="k">tự lưu trong trình duyệt này</span>. Giờ tiết đã chuẩn theo HUTECH 2026–2027.</p>
+
+  <div class="scroll">
+    <table>
+      <thead>
+        <tr>
+          <th class="timecol" style="position:sticky">Tiết</th>
+          <th>Thứ 2</th><th>Thứ 3</th><th>Thứ 4</th><th>Thứ 5</th><th>Thứ 6</th>
+          <th class="wknd">Thứ 7</th><th class="wknd">CN</th>
+        </tr>
+      </thead>
+      <tbody id="grid"></tbody>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><span class="dot" style="background:var(--sang)"></span> Sáng (tiết 1–6)</span>
+    <span><span class="dot" style="background:var(--chieu)"></span> Chiều (tiết 7–12)</span>
+    <span><span class="dot" style="background:var(--toi)"></span> Tối (tiết 13–15)</span>
+  </div>
+
+  <footer>Giờ tiết theo thông báo HUTECH năm học 2026–2027 (mỗi tiết 50 phút). Nội dung mày gõ được lưu riêng trên trình duyệt này.</footer>
+</div>
+
+<script>
+(function(){
+  var ROWS=[
+    [1,"06:40","07:30","sang"],[2,"07:30","08:20","sang"],[3,"08:20","09:10","sang"],
+    [4,"09:10","10:00","sang"],[5,"10:00","10:50","sang"],[6,"10:50","11:40","sang band-end"],
+    [7,"12:30","13:20","chieu"],[8,"13:20","14:10","chieu"],[9,"14:10","15:00","chieu"],
+    [10,"15:00","15:50","chieu"],[11,"15:50","16:40","chieu"],[12,"16:40","17:30","chieu band-end"],
+    [13,"18:00","18:50","toi"],[14,"18:50","19:40","toi"],[15,"19:40","20:30","toi"]
+  ];
+  var DAYS=["t2","t3","t4","t5","t6","t7","cn"];
+  var KEY="tkb_blank_v1";
+  var grid=document.getElementById("grid");
+  for(var i=0;i<ROWS.length;i++){
+    var r=ROWS[i], tr=document.createElement("tr");
+    tr.className=r[3];
+    var th=document.createElement("th");
+    th.className="timecol";
+    th.innerHTML='<span class="tn">'+r[0]+'</span><span class="tm mono">'+r[1]+'–'+r[2]+'</span>';
+    tr.appendChild(th);
+    for(var d=0;d<DAYS.length;d++){
+      var td=document.createElement("td");
+      td.className="cell"+((DAYS[d]==="t7"||DAYS[d]==="cn")?" wknd":"");
+      var ed=document.createElement("div");
+      ed.className="edit"; ed.setAttribute("contenteditable","true");
+      ed.setAttribute("spellcheck","false");
+      ed.dataset.k=DAYS[d]+"_"+r[0];
+      td.appendChild(ed); tr.appendChild(td);
+    }
+    grid.appendChild(tr);
+  }
+
+  function load(){
+    try{
+      var raw=localStorage.getItem(KEY); if(!raw)return;
+      var o=JSON.parse(raw);
+      if(o.wk) document.getElementById("wk").innerText=o.wk;
+      if(o.data){ for(var k in o.data){ var el=document.querySelector('[data-k="'+k+'"]'); if(el) el.innerText=o.data[k]; } }
+    }catch(e){}
+  }
+  var t;
+  function save(){
+    clearTimeout(t);
+    t=setTimeout(function(){
+      try{
+        var data={};
+        document.querySelectorAll("[data-k]").forEach(function(el){
+          var v=el.innerText.replace(/ /g," ").trim(); if(v) data[el.dataset.k]=v;
+        });
+        localStorage.setItem(KEY, JSON.stringify({wk:document.getElementById("wk").innerText.trim(), data:data}));
+      }catch(e){}
+    },250);
+  }
+  document.addEventListener("input", function(e){
+    if(e.target.matches("[data-k]")||e.target.id==="wk") save();
+  });
+  document.getElementById("print").addEventListener("click", function(){ window.print(); });
+  document.getElementById("clear").addEventListener("click", function(){
+    if(!confirm("Xóa hết nội dung đã điền?")) return;
+    document.querySelectorAll("[data-k]").forEach(function(el){ el.innerText=""; });
+    try{ localStorage.removeItem(KEY); }catch(e){}
+  });
+  load();
+})();
+</script>
