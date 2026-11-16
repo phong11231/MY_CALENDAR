@@ -35,7 +35,7 @@
   body{margin:0; background:var(--bg); color:var(--ink);
     font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5}
   .mono{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
-  .wrap{max-width:1260px; margin:0 auto; padding:clamp(16px,3vw,34px) clamp(10px,2vw,26px) 60px}
+  .wrap{max-width:1760px; margin:0 auto; padding:clamp(16px,3vw,34px) clamp(10px,1.6vw,22px) 60px}
 
   .eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin:0 0 7px}
   h1{font-size:clamp(24px,4.4vw,38px); font-weight:800; letter-spacing:-.025em; margin:0;
@@ -71,8 +71,8 @@
   .scroll{overflow-x:auto; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--shadow-lift)}
   .grid{
     display:grid; min-width:840px;
-    grid-template-columns:82px repeat(7,minmax(98px,1fr));
-    grid-template-rows:auto repeat(15,minmax(48px,auto));
+    grid-template-columns:88px repeat(7,minmax(110px,1fr));
+    grid-template-rows:auto repeat(17,minmax(52px,auto));
     position:relative; user-select:none;
   }
   .hcell{position:sticky; top:0; z-index:5; background:var(--head-grad); color:#fff; text-align:center;
@@ -99,20 +99,39 @@
 
   /* ---- Blocks (colored by session) ---- */
   .block{
-    z-index:3; margin:3px; border-radius:11px; padding:7px 9px;
+    z-index:3; margin:3px; border-radius:11px; padding:8px 10px 9px;
     color:#fff; box-shadow:var(--shadow-lift);
-    display:flex; flex-direction:column; gap:3px; overflow:hidden; position:relative; cursor:text;
+    display:flex; flex-direction:column; gap:5px; overflow:hidden; position:relative; cursor:text;
   }
   .block.sang{background:linear-gradient(160deg,var(--sang),var(--sang-d))}
   .block.chieu{background:linear-gradient(160deg,var(--chieu),var(--chieu-d))}
   .block.toi{background:linear-gradient(160deg,var(--toi),var(--toi-d))}
-  .block .brange{font-size:10px; font-weight:700; opacity:.92; letter-spacing:.02em}
-  .block .btext{font-size:13px; font-weight:600; line-height:1.3; outline:none; min-height:17px; flex:1; word-break:break-word}
-  .block .btext:empty::before{content:"Gõ nội dung…"; opacity:.72; font-weight:500}
+  .block .brange{font-size:9.5px; font-weight:700; opacity:.78; letter-spacing:.05em; text-transform:uppercase}
+  .block .btext{font-size:15.5px; font-weight:800; line-height:1.24; letter-spacing:-.005em; color:#fff;
+    text-shadow:0 1px 2px rgba(0,0,0,.28); outline:none; min-height:19px; flex:1; word-break:break-word}
+  .block.done .btext{text-shadow:none}
+  .block .btext:empty::before{content:"Gõ nội dung…"; opacity:.66; font-weight:600; font-size:13px; letter-spacing:0; text-shadow:none}
   .block .del{position:absolute; top:4px; right:4px; width:19px; height:19px; border-radius:6px; border:none;
     background:rgba(0,0,0,.22); color:#fff; font-size:12px; line-height:1; cursor:pointer; opacity:0; transition:opacity .12s; padding:0}
   .block:hover .del,.block:focus-within .del{opacity:1}
   .block .del:hover{background:rgba(0,0,0,.42)}
+  .block .chk{position:absolute; top:4px; left:4px; width:19px; height:19px; border-radius:6px;
+    border:1.5px solid rgba(255,255,255,.8); background:rgba(255,255,255,.14); color:#fff; font-size:12px;
+    font-weight:800; line-height:1; cursor:pointer; padding:0; display:grid; place-items:center}
+  .block .chk:hover{background:rgba(255,255,255,.3)}
+  .block .brange{padding-left:23px}
+  .block.done{opacity:.6}
+  .block.done .chk{background:#fff; color:#15803d; border-color:#fff}
+  .block.done .btext{text-decoration:line-through; text-decoration-thickness:1.5px; opacity:.9}
+
+  /* ---- Progress ---- */
+  .progress{display:flex; align-items:center; gap:13px; margin:2px 0 16px; flex-wrap:wrap}
+  .plabel{font-size:13.5px; font-weight:700; color:var(--ink); white-space:nowrap}
+  .plabel .pct{color:var(--accent-ink); font-size:16px; font-variant-numeric:tabular-nums}
+  .pbar{flex:1; min-width:170px; height:13px; border-radius:999px; background:var(--surface-2);
+    border:1px solid var(--border); overflow:hidden}
+  .pfill{height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--sang),var(--accent)); transition:width .35s ease}
+  .psub{font-size:12px; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
 
   .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:15px; font-size:12.5px; color:var(--muted)}
   .legend span{display:inline-flex; align-items:center; gap:7px}
@@ -157,6 +176,12 @@
     <span class="k">💾 Lưu riêng theo từng người &amp; từng tuần</span>
   </p>
 
+  <div class="progress">
+    <span class="plabel">🎯 Hoàn thành: <span class="pct" id="pct">0%</span></span>
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <span class="psub" id="psub">0/0 mục tiêu · tuần này</span>
+  </div>
+
   <div class="scroll">
     <div class="grid" id="grid"></div>
   </div>
@@ -172,11 +197,13 @@
 <script>
 (function(){
   "use strict";
-  var P=[null,
+  var P=[
+    ["05:00","06:40"],
     ["06:40","07:30"],["07:30","08:20"],["08:20","09:10"],["09:10","10:00"],["10:00","10:50"],["10:50","11:40"],
     ["12:30","13:20"],["13:20","14:10"],["14:10","15:00"],["15:00","15:50"],["15:50","16:40"],["16:40","17:30"],
-    ["18:00","18:50"],["18:50","19:40"],["19:40","20:30"]];
-  function buoi(t){return t<=6?"sang":t<=12?"chieu":"toi";}
+    ["18:00","18:50"],["18:50","19:40"],["19:40","20:30"],
+    ["20:30","22:10"]];
+  function buoi(t){return (t===0||t<=6)?"sang":t<=12?"chieu":"toi";}
   var DAYNAMES=["Thứ 2","Thứ 3","Thứ 4","Thứ 5","Thứ 6","Thứ 7","CN"];
   var NS="tkb2:";
 
@@ -219,15 +246,15 @@
       h.innerHTML='<span>'+DAYNAMES[d]+'</span><span class="dd" data-dh="'+d+'"></span>';
       grid.appendChild(h);
     }
-    for(var t=1;t<=15;t++){
+    for(var t=0;t<=16;t++){
       var tc=document.createElement("div"); tc.className="tcell "+buoi(t);
-      tc.style.gridColumn="1"; tc.style.gridRow=(t+1);
+      tc.style.gridColumn="1"; tc.style.gridRow=(t+2);
       tc.innerHTML='<span class="tn">'+t+'</span><span class="tm mono">'+P[t][0]+"–"+P[t][1]+'</span>';
       grid.appendChild(tc);
       for(var dd=0;dd<7;dd++){
         var s=document.createElement("div");
-        s.className="slot"+(dd>=5?" wknd":"")+((t===6||t===12)?" bandend":"");
-        s.style.gridColumn=(dd+2); s.style.gridRow=(t+1);
+        s.className="slot"+(dd>=5?" wknd":"")+((t===0||t===6||t===12)?" bandend":"");
+        s.style.gridColumn=(dd+2); s.style.gridRow=(t+2);
         s.dataset.d=dd; s.dataset.t=t;
         grid.appendChild(s); slotEls[dd+"_"+t]=s;
       }
@@ -236,22 +263,35 @@
   function renderHeaderDates(){var mon=fromIso(state.week); for(var d=0;d<7;d++){var el=grid.querySelector('[data-dh="'+d+'"]'); if(el)el.textContent=dm(addDays(mon,d));}}
 
   function occupied(d){var set={}; blocks.forEach(function(b){if(b.d===d)for(var t=b.s;t<=b.e;t++)set[t]=1;}); return set;}
+  function updateProgress(){
+    var total=blocks.length, done=0;
+    blocks.forEach(function(b){if(b.c)done++;});
+    var pct=total?Math.round(done/total*100):0;
+    document.getElementById("pct").textContent=pct+"%";
+    document.getElementById("pfill").style.width=pct+"%";
+    document.getElementById("psub").textContent=done+"/"+total+" mục tiêu · tuần này";
+  }
   function renderBlocks(){
     grid.querySelectorAll(".block").forEach(function(e){e.remove();});
     blocks.forEach(function(b,idx){
-      var el=document.createElement("div"); el.className="block "+buoi(b.s);
-      el.style.gridColumn=(b.d+2); el.style.gridRow=(b.s+1)+" / "+(b.e+2);
+      var el=document.createElement("div"); el.className="block "+buoi(b.s)+(b.c?" done":"");
+      el.style.gridColumn=(b.d+2); el.style.gridRow=(b.s+2)+" / "+(b.e+3);
       var rng=(b.s===b.e)?("Tiết "+b.s):("Tiết "+b.s+"–"+b.e);
-      el.innerHTML='<span class="brange mono">'+rng+" · "+P[b.s][0]+"–"+P[b.e][1]+'</span>'+
+      el.innerHTML='<button class="chk" title="Đánh dấu hoàn thành" aria-label="Hoàn thành">'+(b.c?"✓":"")+'</button>'+
+        '<span class="brange mono">'+rng+" · "+P[b.s][0]+"–"+P[b.e][1]+'</span>'+
         '<div class="btext" contenteditable="true" spellcheck="false"></div>'+
         '<button class="del" title="Xóa khối" aria-label="Xóa khối">✕</button>';
       var txt=el.querySelector(".btext"); txt.textContent=b.t||"";
       txt.addEventListener("input",function(){blocks[idx].t=txt.innerText.replace(/ /g," ").trim(); saveBlocks(blocks);});
+      var chk=el.querySelector(".chk");
+      chk.addEventListener("pointerdown",function(ev){ev.stopPropagation();});
+      chk.addEventListener("click",function(ev){ev.stopPropagation(); blocks[idx].c=!blocks[idx].c; saveBlocks(blocks); renderBlocks();});
       el.querySelector(".del").addEventListener("pointerdown",function(ev){ev.stopPropagation();});
       el.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation(); blocks.splice(idx,1); saveBlocks(blocks); renderBlocks();});
       el.addEventListener("pointerdown",function(ev){ev.stopPropagation();});
       grid.appendChild(el);
     });
+    updateProgress();
   }
   function refresh(){blocks=loadBlocks(); renderHeaderDates(); renderBlocks();}
 
@@ -259,7 +299,7 @@
   function clearSel(){grid.querySelectorAll(".slot.sel").forEach(function(e){e.classList.remove("sel");});}
   function paintSel(d,lo,hi){clearSel(); for(var t=lo;t<=hi;t++){var el=slotEls[d+"_"+t]; if(el)el.classList.add("sel");}}
   function emptyRange(d,t0,t1){var occ=occupied(d); if(occ[t0])return null; var step=t1>=t0?1:-1; var t=t0;
-    while(t!==t1){var n=t+step; if(n<1||n>15||occ[n])break; t=n;} return step>0?[t0,t]:[t,t0];}
+    while(t!==t1){var n=t+step; if(n<0||n>16||occ[n])break; t=n;} return step>0?[t0,t]:[t,t0];}
 
   grid.addEventListener("pointerdown",function(ev){
     var s=ev.target.closest(".slot"); if(!s)return;
