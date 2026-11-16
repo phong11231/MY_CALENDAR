@@ -32,6 +32,7 @@
     --shadow-lift:0 4px 12px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.55);
   }
   *{box-sizing:border-box}
+  [hidden]{display:none!important}
   body{margin:0; background:var(--bg); color:var(--ink);
     font-family:"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif; line-height:1.5}
   .mono{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
@@ -133,6 +134,23 @@
   .pfill{height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--sang),var(--accent)); transition:width .35s ease}
   .psub{font-size:12px; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
 
+  /* ---- Copy mode ---- */
+  .copybar{display:flex; align-items:center; gap:9px 12px; flex-wrap:wrap; margin:0 0 16px; padding:12px 15px;
+    background:var(--accent-soft); border:1px solid var(--accent); border-radius:13px; font-size:13px}
+  .copybar .cbinfo{color:var(--accent-ink); font-weight:600}
+  .copybar .cbinfo b{font-size:15px}
+  .copybar .cbsep{flex:1; min-width:4px}
+  .copybar .cblbl{display:inline-flex; align-items:center; gap:6px; color:var(--ink); font-weight:600}
+  .copybar select,.copybar input{font-family:inherit; font-size:13px; font-weight:600; padding:7px 9px; border-radius:9px;
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink)}
+  .block.pick{outline:3px solid #fff; outline-offset:-2px; box-shadow:0 0 0 3px var(--accent), var(--shadow-lift); transform:translateY(-1px)}
+  .copymode .block{cursor:pointer}
+  .copymode .block .btext{pointer-events:none}
+  .copymode .block .chk,.copymode .block .del{display:none}
+  .copymode .slot{cursor:default}
+  .copymode .slot:hover{background:var(--slot)}
+  .copymode .slot.wknd:hover{background:var(--surface-2)}
+
   .legend{display:flex; gap:16px; flex-wrap:wrap; margin-top:15px; font-size:12.5px; color:var(--muted)}
   .legend span{display:inline-flex; align-items:center; gap:7px}
   .dot{width:12px; height:12px; border-radius:5px}
@@ -143,7 +161,7 @@
     html,body{background:#fff; color:#000}
     .wrap{max-width:none; padding:0}
     h1{font-size:17px; background:none; -webkit-text-fill-color:#2a2f8a; color:#2a2f8a; margin:0 0 6px}
-    .bar,.hint,.legend,.progress,footer,.eyebrow,.del,.chk{display:none!important}
+    .bar,.hint,.legend,.progress,.copybar,footer,.eyebrow,.del,.chk{display:none!important}
     .scroll{border:1px solid #9aa; box-shadow:none; overflow:visible; border-radius:0}
     .grid{min-width:0; width:100%;
       grid-template-columns:58px repeat(7,1fr);
@@ -179,6 +197,7 @@
     </div>
     <div class="spacer"></div>
     <button class="iconbtn" id="theme" title="Sáng / Tối" style="border:1px solid var(--border); background:var(--surface); box-shadow:var(--shadow)">☀️</button>
+    <button class="btn" id="copyBtn">📋 Sao chép</button>
     <button class="btn primary" id="print">🖨️ In</button>
     <button class="btn" id="clearWeek">Xóa tuần này</button>
   </div>
@@ -192,6 +211,16 @@
     <span class="plabel">🎯 Hoàn thành: <span class="pct" id="pct">0%</span></span>
     <div class="pbar"><div class="pfill" id="pfill"></div></div>
     <span class="psub" id="psub">0/0 mục tiêu · tuần này</span>
+  </div>
+
+  <div class="copybar" id="copybar" hidden>
+    <span class="cbinfo">📋 Bấm vào các khung để chọn · đã chọn <b id="cbcount">0</b></span>
+    <button class="btn" id="cbAll">Chọn tất cả</button>
+    <span class="cbsep"></span>
+    <label class="cblbl">Dán sang <select id="cbWeek" class="mono"></select></label>
+    <label class="cblbl">lặp <input id="cbRepeat" type="number" min="1" max="20" value="1" style="width:56px"> tuần</label>
+    <button class="btn primary" id="cbPaste">Dán</button>
+    <button class="btn" id="cbCancel">Hủy</button>
   </div>
 
   <div class="scroll">
@@ -249,6 +278,7 @@
   function saveBlocks(b){try{localStorage.setItem(dataKey(),JSON.stringify(b));}catch(e){}}
   function saveCurrent(){try{localStorage.setItem(NS+"current",JSON.stringify({week:state.week,profile:state.profile}));}catch(e){}}
   var blocks=[];
+  var copyMode=false, selected=new Set();
 
   var slotEls={};
   function buildGrid(){
@@ -289,6 +319,7 @@
     blocks.forEach(function(b,idx){
       var el=document.createElement("div"); el.className="block "+buoi(b.s)+(b.c?" done":"");
       el.style.gridColumn=(b.d+2); el.style.gridRow=(b.s+2)+" / "+(b.e+3);
+      el.dataset.bi=idx; if(copyMode&&selected.has(idx))el.classList.add("pick");
       var rng=(b.s===b.e)?("Tiết "+b.s):("Tiết "+b.s+"–"+b.e);
       el.innerHTML='<button class="chk" title="Đánh dấu hoàn thành" aria-label="Hoàn thành">'+(b.c?"✓":"")+'</button>'+
         '<span class="brange mono">'+rng+" · "+P[b.s][0]+"–"+P[b.e][1]+'</span>'+
@@ -315,6 +346,7 @@
     while(t!==t1){var n=t+step; if(n<0||n>16||occ[n])break; t=n;} return step>0?[t0,t]:[t,t0];}
 
   grid.addEventListener("pointerdown",function(ev){
+    if(copyMode)return;
     var s=ev.target.closest(".slot"); if(!s)return;
     if(ev.pointerType==="mouse"&&ev.button!==0)return;
     ev.preventDefault();
@@ -336,6 +368,14 @@
   }
   document.addEventListener("pointerup",finishDrag);
   document.addEventListener("pointercancel",function(){clearSel(); drag=null;});
+  grid.addEventListener("click",function(ev){
+    if(!copyMode)return;
+    var bl=ev.target.closest(".block"); if(!bl)return;
+    var i=+bl.dataset.bi;
+    if(selected.has(i)){selected.delete(i); bl.classList.remove("pick");}
+    else{selected.add(i); bl.classList.add("pick");}
+    document.getElementById("cbcount").textContent=selected.size;
+  });
 
   function buildWeekOptions(){
     weekSel.innerHTML=""; var base=mondayOf(new Date()); var opts=[];
@@ -345,13 +385,13 @@
       o.value=k; o.textContent="Từ ngày "+dmy(mon)+" đến "+dmy(addDays(mon,6)); weekSel.appendChild(o);});
     weekSel.value=state.week;
   }
-  function gotoWeek(k){state.week=k; if(weekSel.value!==k){buildWeekOptions();} weekSel.value=k; saveCurrent(); refresh();}
+  function gotoWeek(k){if(copyMode)exitCopy(); state.week=k; if(weekSel.value!==k){buildWeekOptions();} weekSel.value=k; saveCurrent(); refresh();}
   weekSel.addEventListener("change",function(){gotoWeek(weekSel.value);});
   document.getElementById("prev").addEventListener("click",function(){gotoWeek(iso(addDays(fromIso(state.week),-7)));});
   document.getElementById("next").addEventListener("click",function(){gotoWeek(iso(addDays(fromIso(state.week),7)));});
 
   function buildProfileOptions(){profileSel.innerHTML=""; profiles().forEach(function(n){var o=document.createElement("option"); o.value=n; o.textContent=n; profileSel.appendChild(o);}); profileSel.value=state.profile;}
-  profileSel.addEventListener("change",function(){state.profile=profileSel.value; saveCurrent(); refresh();});
+  profileSel.addEventListener("change",function(){if(copyMode)exitCopy(); state.profile=profileSel.value; saveCurrent(); refresh();});
   document.getElementById("addProfile").addEventListener("click",function(){
     var name=prompt("Tên người dùng mới (vd tên của mày):"); if(!name)return; name=name.trim(); if(!name)return;
     var list=profiles(); if(list.indexOf(name)===-1){list.push(name); saveProfiles(list);}
@@ -362,6 +402,52 @@
   document.getElementById("clearWeek").addEventListener("click",function(){
     if(!confirm("Xóa hết nội dung của tuần này (của "+state.profile+")?"))return;
     blocks=[]; saveBlocks(blocks); renderBlocks();
+  });
+
+  /* ---------- copy blocks to other week(s) ---------- */
+  var copybar=document.getElementById("copybar");
+  var cbWeek=document.getElementById("cbWeek");
+  function updateCbCount(){document.getElementById("cbcount").textContent=selected.size;}
+  function buildCbWeeks(){
+    cbWeek.innerHTML=""; var base=mondayOf(new Date()); var opts=[];
+    for(var i=-4;i<=24;i++)opts.push(iso(addDays(base,i*7)));
+    var nextW=iso(addDays(fromIso(state.week),7));
+    if(opts.indexOf(nextW)===-1){opts.push(nextW); opts.sort();}
+    opts.forEach(function(k){var mon=fromIso(k); var o=document.createElement("option");
+      o.value=k; o.textContent="Từ "+dmy(mon)+" đến "+dmy(addDays(mon,6)); cbWeek.appendChild(o);});
+    cbWeek.value=nextW;
+  }
+  function enterCopy(){copyMode=true; selected.clear(); grid.classList.add("copymode"); copybar.hidden=false; buildCbWeeks(); updateCbCount(); renderBlocks();}
+  function exitCopy(){copyMode=false; selected.clear(); grid.classList.remove("copymode"); copybar.hidden=true; renderBlocks();}
+  document.getElementById("copyBtn").addEventListener("click",function(){
+    if(copyMode){exitCopy(); return;}
+    if(blocks.length===0){alert("Tuần này chưa có khung nào để sao chép."); return;}
+    enterCopy();
+  });
+  document.getElementById("cbCancel").addEventListener("click",exitCopy);
+  document.getElementById("cbAll").addEventListener("click",function(){
+    blocks.forEach(function(b,i){selected.add(i);}); updateCbCount(); renderBlocks();
+  });
+  document.getElementById("cbPaste").addEventListener("click",function(){
+    if(selected.size===0){alert("Chưa chọn khung nào. Bấm vào các khung muốn sao chép (hoặc 'Chọn tất cả')."); return;}
+    var startMon=fromIso(cbWeek.value);
+    var reps=Math.max(1,Math.min(20,parseInt(document.getElementById("cbRepeat").value,10)||1));
+    var src=[]; selected.forEach(function(i){var b=blocks[i]; if(b)src.push({d:b.d,s:b.s,e:b.e,t:b.t});});
+    var pasted=0, skipped=0;
+    for(var w=0;w<reps;w++){
+      var key=NS+"data:"+state.profile+":"+iso(addDays(startMon,w*7));
+      var tb=[]; try{var r=localStorage.getItem(key); tb=r?JSON.parse(r):[];}catch(e){tb=[];}
+      for(var si=0;si<src.length;si++){
+        var sb=src[si], occ={};
+        for(var j=0;j<tb.length;j++){if(tb[j].d===sb.d)for(var tt=tb[j].s;tt<=tb[j].e;tt++)occ[tt]=1;}
+        var clash=false; for(var t2=sb.s;t2<=sb.e;t2++){if(occ[t2]){clash=true;break;}}
+        if(clash){skipped++; continue;}
+        tb.push({d:sb.d,s:sb.s,e:sb.e,t:sb.t}); pasted++;
+      }
+      try{localStorage.setItem(key,JSON.stringify(tb));}catch(e){}
+    }
+    alert("✓ Đã dán "+pasted+" khung sang "+reps+" tuần"+(skipped?(" (bỏ qua "+skipped+" khung vì trùng chỗ)"):"")+".");
+    exitCopy(); refresh();
   });
 
   buildGrid(); buildWeekOptions(); buildProfileOptions(); refresh();
