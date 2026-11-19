@@ -1,9 +1,12 @@
 <meta charset="utf-8">
 <title>Khung Lịch Theo Tiết</title>
-<meta name="description" content="App thời khóa biểu theo tiết HUTECH: chọn tuần, kéo gộp ô theo khung giờ, lưu riêng từng người." />
+<meta name="description" content="App thời khóa biểu theo tiết HUTECH: đăng nhập, lưu cloud theo tài khoản, kéo gộp ô, sao chép tuần." />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
   :root{
     --bg:#eef1fb; --surface:#ffffff; --surface-2:#f4f6fd; --slot:#fbfcff;
@@ -14,7 +17,7 @@
     --sang:#0f9d8f; --sang-d:#0d8b7e;
     --chieu:#d7820f; --chieu-d:#bb6f0c;
     --toi:#7f57d6; --toi-d:#6d47c2;
-    --sel:#d7daf9;
+    --sel:#d7daf9; --danger:#e5484d;
     --shadow:0 1px 2px rgba(40,46,90,.06),0 6px 16px rgba(40,46,90,.08);
     --shadow-lift:0 3px 8px rgba(40,46,90,.12),0 12px 28px rgba(40,46,90,.14);
   }
@@ -27,7 +30,7 @@
     --sang:#2bbcae; --sang-d:#1f9f93;
     --chieu:#e8a24e; --chieu-d:#cf8a33;
     --toi:#a989f0; --toi-d:#8f6fe0;
-    --sel:#2d3366;
+    --sel:#2d3366; --danger:#ff6b6e;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px rgba(0,0,0,.45);
     --shadow-lift:0 4px 12px rgba(0,0,0,.5),0 18px 40px rgba(0,0,0,.55);
   }
@@ -38,11 +41,28 @@
   .mono{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
   .wrap{max-width:1760px; margin:0 auto; padding:clamp(16px,3vw,34px) clamp(10px,1.6vw,22px) 60px}
 
-  .eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin:0 0 7px}
-  h1{font-size:clamp(24px,4.4vw,38px); font-weight:800; letter-spacing:-.025em; margin:0;
-    line-height:1.04; background:var(--head-grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  /* ---- Loading / Auth ---- */
+  .center{position:fixed; inset:0; display:grid; place-items:center; padding:20px; background:var(--bg); z-index:100}
+  .loading{font-size:14px; color:var(--muted)}
+  .authcard{width:100%; max-width:390px; background:var(--surface); border:1px solid var(--border);
+    border-radius:18px; box-shadow:var(--shadow-lift); padding:30px 28px}
+  .authcard .brand{font-size:11.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin:0 0 8px}
+  .authcard h2{margin:0 0 5px; font-size:23px; font-weight:800; letter-spacing:-.02em}
+  .authcard .asub{margin:0 0 22px; font-size:13.5px; color:var(--muted)}
+  .authcard label{display:block; font-size:12.5px; font-weight:600; color:var(--muted); margin:0 0 5px}
+  .authcard input{width:100%; font-family:inherit; font-size:14.5px; padding:11px 13px; border-radius:11px;
+    border:1px solid var(--border-strong); background:var(--surface-2); color:var(--ink); margin-bottom:15px}
+  .authcard input:focus{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+  .aerr{font-size:13px; color:var(--danger); margin:0 0 12px; font-weight:600}
+  .aerr:empty{display:none}
+  .arow{display:flex; gap:10px; margin-top:4px}
+  .arow .btn{flex:1; justify-content:center; text-align:center}
+  .anote{font-size:12px; color:var(--faint); margin:16px 0 0; text-align:center; line-height:1.5}
 
   /* ---- Toolbar ---- */
+  .eyebrow{font-size:11.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--accent); margin:0 0 7px}
+  h1{font-size:clamp(24px,4.4vw,36px); font-weight:800; letter-spacing:-.025em; margin:0;
+    line-height:1.04; background:var(--head-grad); -webkit-background-clip:text; background-clip:text; color:transparent;}
   .bar{display:flex; gap:12px 14px; align-items:center; flex-wrap:wrap; margin:18px 0 10px}
   .group{display:flex; align-items:center; gap:6px; background:var(--surface); border:1px solid var(--border);
     border-radius:13px; padding:5px; box-shadow:var(--shadow)}
@@ -54,34 +74,48 @@
   select:hover{background:var(--accent-soft)}
   .wk-select{min-width:238px; font-variant-numeric:tabular-nums}
   .who-label{font-size:13px; color:var(--muted); font-weight:600; padding-left:8px}
+  .umail{font-size:13px; font-weight:700; color:var(--ink); max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
   .btn{font-family:inherit; font-size:13.5px; font-weight:700; cursor:pointer; border-radius:11px;
     padding:10px 15px; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink); box-shadow:var(--shadow)}
   .btn:hover{border-color:var(--accent); color:var(--accent-ink)}
   .btn.primary{background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:var(--shadow-lift)}
   .btn.primary:hover{color:#fff; filter:brightness(1.06)}
   .btn:active,.iconbtn:active{transform:translateY(1px)}
-  button:focus-visible,select:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
   .spacer{flex:1}
+  .sync{font-size:12px; color:var(--faint); white-space:nowrap}
 
   .hint{font-size:12.5px; color:var(--faint); margin:4px 0 16px; display:flex; gap:8px 10px; align-items:center; flex-wrap:wrap}
   .hint b{color:var(--muted)}
   .hint .k{display:inline-flex; align-items:center; gap:6px; background:var(--accent-soft); color:var(--accent-ink);
     border-radius:999px; padding:4px 11px; font-weight:600}
 
-  /* ---- Grid ---- */
+  .progress{display:flex; align-items:center; gap:13px; margin:2px 0 16px; flex-wrap:wrap}
+  .plabel{font-size:13.5px; font-weight:700; color:var(--ink); white-space:nowrap}
+  .plabel .pct{color:var(--accent-ink); font-size:16px; font-variant-numeric:tabular-nums}
+  .pbar{flex:1; min-width:170px; height:13px; border-radius:999px; background:var(--surface-2); border:1px solid var(--border); overflow:hidden}
+  .pfill{height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--sang),var(--accent)); transition:width .35s ease}
+  .psub{font-size:12px; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
+
+  .copybar{display:flex; align-items:center; gap:9px 12px; flex-wrap:wrap; margin:0 0 16px; padding:12px 15px;
+    background:var(--accent-soft); border:1px solid var(--accent); border-radius:13px; font-size:13px}
+  .copybar .cbinfo{color:var(--accent-ink); font-weight:600}
+  .copybar .cbinfo b{font-size:15px}
+  .copybar .cbsep{flex:1; min-width:4px}
+  .copybar .cblbl{display:inline-flex; align-items:center; gap:6px; color:var(--ink); font-weight:600}
+  .copybar select,.copybar input{font-family:inherit; font-size:13px; font-weight:600; padding:7px 9px; border-radius:9px;
+    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink)}
+
   .scroll{overflow-x:auto; border:1px solid var(--border); border-radius:18px; background:var(--surface); box-shadow:var(--shadow-lift)}
-  .grid{
-    display:grid; min-width:840px;
+  .grid{display:grid; min-width:840px;
     grid-template-columns:88px repeat(7,minmax(110px,1fr));
     grid-template-rows:auto repeat(17,minmax(52px,auto));
-    position:relative; user-select:none;
-  }
+    position:relative; user-select:none;}
   .hcell{position:sticky; top:0; z-index:5; background:var(--head-grad); color:#fff; text-align:center;
     padding:11px 4px 9px; font-size:13px; font-weight:700; border-right:1px solid rgba(255,255,255,.16)}
   .hcell .dd{display:block; font-size:10.5px; font-weight:500; opacity:.85; margin-top:2px; letter-spacing:.02em}
   .hcell.wknd{background:linear-gradient(135deg,#8a74ee,#7a5fe6)}
   .hcell.corner{z-index:6; left:0; position:sticky; font-size:12px; letter-spacing:.04em; text-transform:uppercase; opacity:.95}
-
   .tcell{position:sticky; left:0; z-index:4; background:var(--surface-2); padding:6px 10px;
     border-top:1px solid var(--grid); border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:center}
   .tn{display:inline-flex; align-items:center; justify-content:center; width:22px; height:22px; border-radius:7px;
@@ -90,24 +124,18 @@
   .tcell.sang{border-left:3px solid var(--sang)} .tcell.sang .tn{background:var(--sang)}
   .tcell.chieu{border-left:3px solid var(--chieu)} .tcell.chieu .tn{background:var(--chieu)}
   .tcell.toi{border-left:3px solid var(--toi)} .tcell.toi .tn{background:var(--toi)}
-
-  .slot{border-top:1px solid var(--grid); border-right:1px solid var(--grid); background:var(--slot);
-    cursor:cell; transition:background .1s}
+  .slot{border-top:1px solid var(--grid); border-right:1px solid var(--grid); background:var(--slot); cursor:cell; transition:background .1s}
   .slot.wknd{background:var(--surface-2)}
   .slot:hover{background:var(--accent-soft)}
   .slot.sel{background:var(--sel)!important}
   .slot.bandend{border-bottom:2px solid var(--border-strong)}
 
-  /* ---- Blocks (colored by session) ---- */
-  .block{
-    z-index:3; margin:3px; border-radius:11px; padding:8px 10px 9px;
-    color:#fff; box-shadow:var(--shadow-lift);
-    display:flex; flex-direction:column; gap:5px; overflow:hidden; position:relative; cursor:text;
-  }
+  .block{z-index:3; margin:3px; border-radius:11px; padding:8px 10px 9px; color:#fff; box-shadow:var(--shadow-lift);
+    display:flex; flex-direction:column; gap:5px; overflow:hidden; position:relative; cursor:text;}
   .block.sang{background:linear-gradient(160deg,var(--sang),var(--sang-d))}
   .block.chieu{background:linear-gradient(160deg,var(--chieu),var(--chieu-d))}
   .block.toi{background:linear-gradient(160deg,var(--toi),var(--toi-d))}
-  .block .brange{font-size:9.5px; font-weight:700; opacity:.78; letter-spacing:.05em; text-transform:uppercase}
+  .block .brange{font-size:9.5px; font-weight:700; opacity:.78; letter-spacing:.05em; text-transform:uppercase; padding-left:23px}
   .block .btext{font-size:15.5px; font-weight:800; line-height:1.24; letter-spacing:-.005em; color:#fff;
     text-shadow:0 1px 2px rgba(0,0,0,.28); outline:none; min-height:19px; flex:1; word-break:break-word}
   .block.done .btext{text-shadow:none}
@@ -120,29 +148,9 @@
     border:1.5px solid rgba(255,255,255,.8); background:rgba(255,255,255,.14); color:#fff; font-size:12px;
     font-weight:800; line-height:1; cursor:pointer; padding:0; display:grid; place-items:center}
   .block .chk:hover{background:rgba(255,255,255,.3)}
-  .block .brange{padding-left:23px}
   .block.done{opacity:.6}
   .block.done .chk{background:#fff; color:#15803d; border-color:#fff}
-  .block.done .btext{text-decoration:line-through; text-decoration-thickness:1.5px; opacity:.9}
-
-  /* ---- Progress ---- */
-  .progress{display:flex; align-items:center; gap:13px; margin:2px 0 16px; flex-wrap:wrap}
-  .plabel{font-size:13.5px; font-weight:700; color:var(--ink); white-space:nowrap}
-  .plabel .pct{color:var(--accent-ink); font-size:16px; font-variant-numeric:tabular-nums}
-  .pbar{flex:1; min-width:170px; height:13px; border-radius:999px; background:var(--surface-2);
-    border:1px solid var(--border); overflow:hidden}
-  .pfill{height:100%; width:0; border-radius:999px; background:linear-gradient(90deg,var(--sang),var(--accent)); transition:width .35s ease}
-  .psub{font-size:12px; color:var(--faint); white-space:nowrap; font-variant-numeric:tabular-nums}
-
-  /* ---- Copy mode ---- */
-  .copybar{display:flex; align-items:center; gap:9px 12px; flex-wrap:wrap; margin:0 0 16px; padding:12px 15px;
-    background:var(--accent-soft); border:1px solid var(--accent); border-radius:13px; font-size:13px}
-  .copybar .cbinfo{color:var(--accent-ink); font-weight:600}
-  .copybar .cbinfo b{font-size:15px}
-  .copybar .cbsep{flex:1; min-width:4px}
-  .copybar .cblbl{display:inline-flex; align-items:center; gap:6px; color:var(--ink); font-weight:600}
-  .copybar select,.copybar input{font-family:inherit; font-size:13px; font-weight:600; padding:7px 9px; border-radius:9px;
-    border:1px solid var(--border-strong); background:var(--surface); color:var(--ink)}
+  .block.done .btext{text-decoration:line-through; text-decoration-thickness:1.5px}
   .block.pick{outline:3px solid #fff; outline-offset:-2px; box-shadow:0 0 0 3px var(--accent), var(--shadow-lift); transform:translateY(-1px)}
   .copymode .block{cursor:pointer}
   .copymode .block .btext{pointer-events:none}
@@ -163,11 +171,8 @@
     h1{font-size:17px; background:none; -webkit-text-fill-color:#2a2f8a; color:#2a2f8a; margin:0 0 6px}
     .bar,.hint,.legend,.progress,.copybar,footer,.eyebrow,.del,.chk{display:none!important}
     .scroll{border:1px solid #9aa; box-shadow:none; overflow:visible; border-radius:0}
-    .grid{min-width:0; width:100%;
-      grid-template-columns:58px repeat(7,1fr);
-      grid-template-rows:auto repeat(17,33px); break-inside:avoid}
-    .hcell{position:static; background:#e9ebfb!important; color:#222!important;
-      -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:4px 2px; font-size:9.5px; border-right:1px solid #bbb}
+    .grid{min-width:0; width:100%; grid-template-columns:58px repeat(7,1fr); grid-template-rows:auto repeat(17,33px); break-inside:avoid}
+    .hcell{position:static; background:#e9ebfb!important; color:#222!important; -webkit-print-color-adjust:exact; print-color-adjust:exact; padding:4px 2px; font-size:9.5px; border-right:1px solid #bbb}
     .hcell .dd{font-size:7.5px}
     .tcell{position:static; padding:2px 5px; border-color:#ccc!important}
     .tcell .tm{font-size:7px}
@@ -180,6 +185,30 @@
   }
 </style>
 
+<!-- Loading -->
+<div class="center" id="loadingView"><div class="loading">Đang tải…</div></div>
+
+<!-- Login / Signup -->
+<div class="center" id="authView" hidden>
+  <div class="authcard">
+    <p class="brand">HUTECH · Lịch theo tiết</p>
+    <h2>Đăng nhập</h2>
+    <p class="asub">Đăng nhập để lưu lịch trên tài khoản — mở máy nào cũng thấy.</p>
+    <div class="aerr" id="aerr"></div>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" placeholder="ban@email.com">
+    <label for="pw">Mật khẩu</label>
+    <input id="pw" type="password" autocomplete="current-password" placeholder="ít nhất 6 ký tự">
+    <div class="arow">
+      <button class="btn primary" id="loginBtn">Đăng nhập</button>
+      <button class="btn" id="signupBtn">Đăng ký</button>
+    </div>
+    <p class="anote">Lần đầu thì bấm <b>Đăng ký</b>. Dữ liệu lịch bạn đã điền sẵn trên máy sẽ tự được đưa lên tài khoản.</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="appView" hidden>
 <div class="wrap">
   <p class="eyebrow">HUTECH · Lịch theo tiết</p>
   <h1>Khung lịch theo tiết</h1>
@@ -191,10 +220,11 @@
       <button class="iconbtn" id="next" title="Tuần sau">▶</button>
     </div>
     <div class="group">
-      <span class="who-label">👤 Người</span>
-      <select id="profileSel" aria-label="Chọn người dùng"></select>
-      <button class="iconbtn" id="addProfile" title="Thêm người">＋</button>
+      <span class="who-label">👤</span>
+      <span class="umail" id="userEmail"></span>
+      <button class="iconbtn" id="logout" title="Đăng xuất">⎋</button>
     </div>
+    <span class="sync" id="sync"></span>
     <div class="spacer"></div>
     <button class="iconbtn" id="theme" title="Sáng / Tối" style="border:1px solid var(--border); background:var(--surface); box-shadow:var(--shadow)">☀️</button>
     <button class="btn" id="copyBtn">📋 Sao chép</button>
@@ -204,7 +234,7 @@
 
   <p class="hint">
     <span>🖱️ <b>Kéo dọc</b> trong một cột để gộp nhiều tiết thành một khối (vd tiết 7→11). Bấm 1 ô để điền nhanh.</span>
-    <span class="k">💾 Lưu riêng theo từng người &amp; từng tuần</span>
+    <span class="k">☁️ Lưu trên tài khoản của bạn</span>
   </p>
 
   <div class="progress">
@@ -223,21 +253,32 @@
     <button class="btn" id="cbCancel">Hủy</button>
   </div>
 
-  <div class="scroll">
-    <div class="grid" id="grid"></div>
-  </div>
+  <div class="scroll"><div class="grid" id="grid"></div></div>
 
   <div class="legend">
-    <span><span class="dot" style="background:var(--sang)"></span> Sáng · tiết 1–6</span>
+    <span><span class="dot" style="background:var(--sang)"></span> Sáng · tiết 0–6</span>
     <span><span class="dot" style="background:var(--chieu)"></span> Chiều · tiết 7–12</span>
-    <span><span class="dot" style="background:var(--toi)"></span> Tối · tiết 13–15</span>
+    <span><span class="dot" style="background:var(--toi)"></span> Tối · tiết 13–16</span>
   </div>
-  <footer>Giờ tiết theo thông báo HUTECH 2026–2027 (mỗi tiết 50 phút). Mỗi người chọn tên mình ở ô “Người” để có dữ liệu riêng.</footer>
+  <footer>Giờ tiết theo thông báo HUTECH 2026–2027. Dữ liệu lưu trên tài khoản (cloud) — đổi máy vẫn còn.</footer>
+</div>
 </div>
 
 <script>
 (function(){
   "use strict";
+  var firebaseConfig = {
+    apiKey: "AIzaSyCdc-EQiFL6PB-7sm44U7mUu1OB5sRvGP0",
+    authDomain: "lichchill-32fc5.firebaseapp.com",
+    projectId: "lichchill-32fc5",
+    storageBucket: "lichchill-32fc5.firebasestorage.app",
+    messagingSenderId: "537593679634",
+    appId: "1:537593679634:web:364051f0d9c6fb0e9b2dcb"
+  };
+  firebase.initializeApp(firebaseConfig);
+  var auth=firebase.auth(), db=firebase.firestore();
+  var uid=null, built=false;
+
   var P=[
     ["05:00","06:40"],
     ["06:40","07:30"],["07:30","08:20"],["08:20","09:10"],["09:10","10:00"],["10:00","10:50"],["10:50","11:40"],
@@ -254,51 +295,83 @@
   function dmy(d){return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0")+"/"+d.getFullYear();}
   function dm(d){return String(d.getDate()).padStart(2,"0")+"/"+String(d.getMonth()+1).padStart(2,"0");}
   function fromIso(s){var p=s.split("-"); return new Date(+p[0],+p[1]-1,+p[2]);}
+  function clean(arr){return (arr||[]).map(function(x){return {d:x.d,s:x.s,e:x.e,t:x.t||"",c:!!x.c};});}
 
-  /* ---- theme ---- */
-  function applyTheme(t){document.documentElement.setAttribute("data-theme",t); document.getElementById("theme").textContent=(t==="dark"?"🌙":"☀️");}
-  var savedTheme; try{savedTheme=localStorage.getItem(NS+"theme");}catch(e){}
-  applyTheme(savedTheme||"light");
-  document.getElementById("theme").addEventListener("click",function(){
-    var cur=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
-    applyTheme(cur); try{localStorage.setItem(NS+"theme",cur);}catch(e){}
-  });
+  /* ---------- data layer (Firestore + migrate from localStorage) ---------- */
+  function weekDoc(wk){return db.collection("users").doc(uid).collection("weeks").doc(wk);}
+  function localWeek(wk){
+    try{
+      var prefer=localStorage.getItem(NS+"data:Mặc định:"+wk);
+      if(prefer){var a=JSON.parse(prefer); if(a&&a.length)return a;}
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf(NS+"data:")===0&&k.slice(-(wk.length+1))===":"+wk){
+          var b=JSON.parse(localStorage.getItem(k)||"[]"); if(b&&b.length)return b;
+        }
+      }
+    }catch(e){}
+    return null;
+  }
+  function loadWeek(wk){
+    return weekDoc(wk).get().then(function(s){
+      if(s.exists){return clean(s.data().blocks);}
+      var lb=localWeek(wk);
+      if(lb&&lb.length){var c=clean(lb); weekDoc(wk).set({blocks:c}); return c;}
+      return [];
+    }).catch(function(e){ console.warn(e); var lb=localWeek(wk); return clean(lb)||[]; });
+  }
+  function saveWeek(wk,blocks){ setSync("Đang lưu…"); return weekDoc(wk).set({blocks:clean(blocks)}).then(function(){setSync("Đã lưu ✓");}).catch(function(e){console.error(e); setSync("Lỗi lưu!");}); }
+  function migrateAll(){
+    try{
+      var flag=NS+"migrated:"+uid;
+      if(localStorage.getItem(flag))return Promise.resolve();
+      var weeks={};
+      for(var i=0;i<localStorage.length;i++){
+        var k=localStorage.key(i);
+        if(k&&k.indexOf(NS+"data:")===0){
+          var wk=k.slice(k.lastIndexOf(":")+1);
+          var a=JSON.parse(localStorage.getItem(k)||"[]");
+          if(a&&a.length&&!weeks[wk])weeks[wk]=a;
+        }
+      }
+      var keys=Object.keys(weeks);
+      if(!keys.length){localStorage.setItem(flag,"1"); return Promise.resolve();}
+      setSync("Đang đưa lịch cũ lên…");
+      var chain=Promise.resolve();
+      keys.forEach(function(wk){
+        chain=chain.then(function(){
+          return weekDoc(wk).get().then(function(s){ if(!s.exists) return weekDoc(wk).set({blocks:clean(weeks[wk])}); });
+        });
+      });
+      return chain.then(function(){localStorage.setItem(flag,"1"); setSync("Đã đồng bộ ✓");});
+    }catch(e){return Promise.resolve();}
+  }
+  var syncT;
+  function setSync(txt){var el=document.getElementById("sync"); if(!el)return; el.textContent=txt; clearTimeout(syncT); if(txt.indexOf("✓")>=0){syncT=setTimeout(function(){el.textContent="";},1500);}}
 
+  /* ---------- state ---------- */
   var grid=document.getElementById("grid");
   var weekSel=document.getElementById("weekSel");
-  var profileSel=document.getElementById("profileSel");
-  var state={week:iso(mondayOf(new Date())), profile:"Mặc định"};
-  // Luôn mở ở tuần hiện tại (tuần chứa hôm nay). Chỉ nhớ người dùng đã chọn.
-  try{var cur=JSON.parse(localStorage.getItem(NS+"current")||"{}"); if(cur.profile)state.profile=cur.profile;}catch(e){}
+  var state={week:iso(mondayOf(new Date()))};
+  var blocks=[], copyMode=false, selected=new Set();
 
-  function profiles(){try{var p=JSON.parse(localStorage.getItem(NS+"profiles")||"null"); if(Array.isArray(p)&&p.length)return p;}catch(e){} return ["Mặc định"];}
-  function saveProfiles(list){try{localStorage.setItem(NS+"profiles",JSON.stringify(list));}catch(e){}}
-  function dataKey(){return NS+"data:"+state.profile+":"+state.week;}
-  function loadBlocks(){try{var r=localStorage.getItem(dataKey()); return r?JSON.parse(r):[];}catch(e){return [];}}
-  function saveBlocks(b){try{localStorage.setItem(dataKey(),JSON.stringify(b));}catch(e){}}
-  function saveCurrent(){try{localStorage.setItem(NS+"current",JSON.stringify({week:state.week,profile:state.profile}));}catch(e){}}
-  var blocks=[];
-  var copyMode=false, selected=new Set();
-
+  /* ---------- build grid ---------- */
   var slotEls={};
   function buildGrid(){
     grid.innerHTML="";
     var corner=document.createElement("div"); corner.className="hcell corner"; corner.textContent="Tiết"; grid.appendChild(corner);
     for(var d=0;d<7;d++){
       var h=document.createElement("div"); h.className="hcell"+(d>=5?" wknd":"");
-      h.innerHTML='<span>'+DAYNAMES[d]+'</span><span class="dd" data-dh="'+d+'"></span>';
-      grid.appendChild(h);
+      h.innerHTML='<span>'+DAYNAMES[d]+'</span><span class="dd" data-dh="'+d+'"></span>'; grid.appendChild(h);
     }
     for(var t=0;t<=16;t++){
       var tc=document.createElement("div"); tc.className="tcell "+buoi(t);
       tc.style.gridColumn="1"; tc.style.gridRow=(t+2);
-      tc.innerHTML='<span class="tn">'+t+'</span><span class="tm mono">'+P[t][0]+"–"+P[t][1]+'</span>';
-      grid.appendChild(tc);
+      tc.innerHTML='<span class="tn">'+t+'</span><span class="tm mono">'+P[t][0]+"–"+P[t][1]+'</span>'; grid.appendChild(tc);
       for(var dd=0;dd<7;dd++){
         var s=document.createElement("div");
         s.className="slot"+(dd>=5?" wknd":"")+((t===0||t===6||t===12)?" bandend":"");
-        s.style.gridColumn=(dd+2); s.style.gridRow=(t+2);
-        s.dataset.d=dd; s.dataset.t=t;
+        s.style.gridColumn=(dd+2); s.style.gridRow=(t+2); s.dataset.d=dd; s.dataset.t=t;
         grid.appendChild(s); slotEls[dd+"_"+t]=s;
       }
     }
@@ -307,8 +380,7 @@
 
   function occupied(d){var set={}; blocks.forEach(function(b){if(b.d===d)for(var t=b.s;t<=b.e;t++)set[t]=1;}); return set;}
   function updateProgress(){
-    var total=blocks.length, done=0;
-    blocks.forEach(function(b){if(b.c)done++;});
+    var total=blocks.length, done=0; blocks.forEach(function(b){if(b.c)done++;});
     var pct=total?Math.round(done/total*100):0;
     document.getElementById("pct").textContent=pct+"%";
     document.getElementById("pfill").style.width=pct+"%";
@@ -326,32 +398,36 @@
         '<div class="btext" contenteditable="true" spellcheck="false"></div>'+
         '<button class="del" title="Xóa khối" aria-label="Xóa khối">✕</button>';
       var txt=el.querySelector(".btext"); txt.textContent=b.t||"";
-      txt.addEventListener("input",function(){blocks[idx].t=txt.innerText.replace(/ /g," ").trim(); saveBlocks(blocks);});
+      txt.addEventListener("input",function(){blocks[idx].t=txt.innerText.replace(/ /g," ").trim(); persist();});
       var chk=el.querySelector(".chk");
       chk.addEventListener("pointerdown",function(ev){ev.stopPropagation();});
-      chk.addEventListener("click",function(ev){ev.stopPropagation(); blocks[idx].c=!blocks[idx].c; saveBlocks(blocks); renderBlocks();});
+      chk.addEventListener("click",function(ev){ev.stopPropagation(); blocks[idx].c=!blocks[idx].c; persist(); renderBlocks();});
       el.querySelector(".del").addEventListener("pointerdown",function(ev){ev.stopPropagation();});
-      el.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation(); blocks.splice(idx,1); saveBlocks(blocks); renderBlocks();});
+      el.querySelector(".del").addEventListener("click",function(ev){ev.stopPropagation(); blocks.splice(idx,1); persist(); renderBlocks();});
       el.addEventListener("pointerdown",function(ev){ev.stopPropagation();});
       grid.appendChild(el);
     });
     updateProgress();
   }
-  function refresh(){blocks=loadBlocks(); renderHeaderDates(); renderBlocks();}
 
+  var saveTimer;
+  function persist(){ var wk=state.week; var snap=clean(blocks); clearTimeout(saveTimer); saveTimer=setTimeout(function(){saveWeek(wk,snap);},450); }
+
+  var loadToken=0;
+  function refresh(){ renderHeaderDates(); var t=++loadToken; loadWeek(state.week).then(function(b){ if(t!==loadToken)return; blocks=b; renderBlocks(); }); }
+
+  /* ---------- drag select ---------- */
   var drag=null;
   function clearSel(){grid.querySelectorAll(".slot.sel").forEach(function(e){e.classList.remove("sel");});}
   function paintSel(d,lo,hi){clearSel(); for(var t=lo;t<=hi;t++){var el=slotEls[d+"_"+t]; if(el)el.classList.add("sel");}}
   function emptyRange(d,t0,t1){var occ=occupied(d); if(occ[t0])return null; var step=t1>=t0?1:-1; var t=t0;
     while(t!==t1){var n=t+step; if(n<0||n>16||occ[n])break; t=n;} return step>0?[t0,t]:[t,t0];}
-
   grid.addEventListener("pointerdown",function(ev){
     if(copyMode)return;
     var s=ev.target.closest(".slot"); if(!s)return;
     if(ev.pointerType==="mouse"&&ev.button!==0)return;
     ev.preventDefault();
-    drag={d:+s.dataset.d, t0:+s.dataset.t, t1:+s.dataset.t, pt:ev.pointerType};
-    paintSel(drag.d,drag.t0,drag.t0);
+    drag={d:+s.dataset.d, t0:+s.dataset.t, t1:+s.dataset.t, pt:ev.pointerType}; paintSel(drag.d,drag.t0,drag.t0);
   });
   grid.addEventListener("pointermove",function(ev){
     if(!drag||drag.pt!=="mouse")return;
@@ -362,9 +438,8 @@
   function finishDrag(){
     if(!drag)return; var r=emptyRange(drag.d,drag.t0,drag.t1); clearSel(); var d=drag.d; drag=null;
     if(!r)return;
-    blocks.push({d:d,s:r[0],e:r[1],t:""}); saveBlocks(blocks); renderBlocks();
-    var all=grid.querySelectorAll(".block"); var target=all[all.length-1];
-    if(target){var te=target.querySelector(".btext"); if(te)te.focus();}
+    blocks.push({d:d,s:r[0],e:r[1],t:"",c:false}); persist(); renderBlocks();
+    var all=grid.querySelectorAll(".block"); var target=all[all.length-1]; if(target){var te=target.querySelector(".btext"); if(te)te.focus();}
   }
   document.addEventListener("pointerup",finishDrag);
   document.addEventListener("pointercancel",function(){clearSel(); drag=null;});
@@ -372,11 +447,11 @@
     if(!copyMode)return;
     var bl=ev.target.closest(".block"); if(!bl)return;
     var i=+bl.dataset.bi;
-    if(selected.has(i)){selected.delete(i); bl.classList.remove("pick");}
-    else{selected.add(i); bl.classList.add("pick");}
+    if(selected.has(i)){selected.delete(i); bl.classList.remove("pick");} else {selected.add(i); bl.classList.add("pick");}
     document.getElementById("cbcount").textContent=selected.size;
   });
 
+  /* ---------- week dropdown ---------- */
   function buildWeekOptions(){
     weekSel.innerHTML=""; var base=mondayOf(new Date()); var opts=[];
     for(var i=-10;i<=20;i++)opts.push(iso(addDays(base,i*7)));
@@ -385,26 +460,28 @@
       o.value=k; o.textContent="Từ ngày "+dmy(mon)+" đến "+dmy(addDays(mon,6)); weekSel.appendChild(o);});
     weekSel.value=state.week;
   }
-  function gotoWeek(k){if(copyMode)exitCopy(); state.week=k; if(weekSel.value!==k){buildWeekOptions();} weekSel.value=k; saveCurrent(); refresh();}
+  function gotoWeek(k){if(copyMode)exitCopy(); state.week=k; if(weekSel.value!==k){buildWeekOptions();} weekSel.value=k; refresh();}
   weekSel.addEventListener("change",function(){gotoWeek(weekSel.value);});
   document.getElementById("prev").addEventListener("click",function(){gotoWeek(iso(addDays(fromIso(state.week),-7)));});
   document.getElementById("next").addEventListener("click",function(){gotoWeek(iso(addDays(fromIso(state.week),7)));});
 
-  function buildProfileOptions(){profileSel.innerHTML=""; profiles().forEach(function(n){var o=document.createElement("option"); o.value=n; o.textContent=n; profileSel.appendChild(o);}); profileSel.value=state.profile;}
-  profileSel.addEventListener("change",function(){if(copyMode)exitCopy(); state.profile=profileSel.value; saveCurrent(); refresh();});
-  document.getElementById("addProfile").addEventListener("click",function(){
-    var name=prompt("Tên người dùng mới (vd tên của mày):"); if(!name)return; name=name.trim(); if(!name)return;
-    var list=profiles(); if(list.indexOf(name)===-1){list.push(name); saveProfiles(list);}
-    state.profile=name; saveCurrent(); buildProfileOptions(); refresh();
+  /* ---------- theme ---------- */
+  function applyTheme(t){document.documentElement.setAttribute("data-theme",t); document.getElementById("theme").textContent=(t==="dark"?"🌙":"☀️");}
+  var savedTheme; try{savedTheme=localStorage.getItem(NS+"theme");}catch(e){}
+  applyTheme(savedTheme||"light");
+  document.getElementById("theme").addEventListener("click",function(){
+    var cur=document.documentElement.getAttribute("data-theme")==="dark"?"light":"dark";
+    applyTheme(cur); try{localStorage.setItem(NS+"theme",cur);}catch(e){}
   });
 
+  /* ---------- buttons ---------- */
   document.getElementById("print").addEventListener("click",function(){window.print();});
   document.getElementById("clearWeek").addEventListener("click",function(){
-    if(!confirm("Xóa hết nội dung của tuần này (của "+state.profile+")?"))return;
-    blocks=[]; saveBlocks(blocks); renderBlocks();
+    if(!confirm("Xóa hết nội dung của tuần này?"))return; blocks=[]; persist(); renderBlocks();
   });
+  document.getElementById("logout").addEventListener("click",function(){ auth.signOut(); });
 
-  /* ---------- copy blocks to other week(s) ---------- */
+  /* ---------- copy ---------- */
   var copybar=document.getElementById("copybar");
   var cbWeek=document.getElementById("cbWeek");
   function updateCbCount(){document.getElementById("cbcount").textContent=selected.size;}
@@ -425,31 +502,69 @@
     enterCopy();
   });
   document.getElementById("cbCancel").addEventListener("click",exitCopy);
-  document.getElementById("cbAll").addEventListener("click",function(){
-    blocks.forEach(function(b,i){selected.add(i);}); updateCbCount(); renderBlocks();
-  });
+  document.getElementById("cbAll").addEventListener("click",function(){ blocks.forEach(function(b,i){selected.add(i);}); updateCbCount(); renderBlocks(); });
   document.getElementById("cbPaste").addEventListener("click",function(){
     if(selected.size===0){alert("Chưa chọn khung nào. Bấm vào các khung muốn sao chép (hoặc 'Chọn tất cả')."); return;}
     var startMon=fromIso(cbWeek.value);
     var reps=Math.max(1,Math.min(20,parseInt(document.getElementById("cbRepeat").value,10)||1));
     var src=[]; selected.forEach(function(i){var b=blocks[i]; if(b)src.push({d:b.d,s:b.s,e:b.e,t:b.t});});
+    var targets=[]; for(var w=0;w<reps;w++)targets.push(iso(addDays(startMon,w*7)));
     var pasted=0, skipped=0;
-    for(var w=0;w<reps;w++){
-      var key=NS+"data:"+state.profile+":"+iso(addDays(startMon,w*7));
-      var tb=[]; try{var r=localStorage.getItem(key); tb=r?JSON.parse(r):[];}catch(e){tb=[];}
-      for(var si=0;si<src.length;si++){
-        var sb=src[si], occ={};
-        for(var j=0;j<tb.length;j++){if(tb[j].d===sb.d)for(var tt=tb[j].s;tt<=tb[j].e;tt++)occ[tt]=1;}
-        var clash=false; for(var t2=sb.s;t2<=sb.e;t2++){if(occ[t2]){clash=true;break;}}
-        if(clash){skipped++; continue;}
-        tb.push({d:sb.d,s:sb.s,e:sb.e,t:sb.t}); pasted++;
-      }
-      try{localStorage.setItem(key,JSON.stringify(tb));}catch(e){}
-    }
-    alert("✓ Đã dán "+pasted+" khung sang "+reps+" tuần"+(skipped?(" (bỏ qua "+skipped+" khung vì trùng chỗ)"):"")+".");
-    exitCopy(); refresh();
+    setSync("Đang dán…");
+    var chain=Promise.resolve();
+    targets.forEach(function(wk){
+      chain=chain.then(function(){ return loadWeek(wk).then(function(tb){
+        src.forEach(function(sb){
+          var occ={}; for(var j=0;j<tb.length;j++){if(tb[j].d===sb.d)for(var tt=tb[j].s;tt<=tb[j].e;tt++)occ[tt]=1;}
+          var clash=false; for(var t2=sb.s;t2<=sb.e;t2++){if(occ[t2]){clash=true;break;}}
+          if(clash){skipped++; return;}
+          tb.push({d:sb.d,s:sb.s,e:sb.e,t:sb.t,c:false}); pasted++;
+        });
+        return weekDoc(wk).set({blocks:clean(tb)});
+      });});
+    });
+    chain.then(function(){ alert("✓ Đã dán "+pasted+" khung sang "+reps+" tuần"+(skipped?(" (bỏ qua "+skipped+" khung trùng chỗ)"):"")+"."); exitCopy(); refresh(); setSync("Đã lưu ✓"); });
   });
 
-  buildGrid(); buildWeekOptions(); buildProfileOptions(); refresh();
+  /* ---------- auth ---------- */
+  var loadingView=document.getElementById("loadingView");
+  var authView=document.getElementById("authView");
+  var appView=document.getElementById("appView");
+  function authErr(e){
+    var c=(e&&e.code)||"";
+    if(c.indexOf("invalid-email")>=0)return "Email không hợp lệ.";
+    if(c.indexOf("weak-password")>=0||c.indexOf("missing-password")>=0)return "Mật khẩu phải từ 6 ký tự trở lên.";
+    if(c.indexOf("email-already-in-use")>=0)return "Email này đã có tài khoản — bấm Đăng nhập.";
+    if(c.indexOf("invalid-credential")>=0||c.indexOf("wrong-password")>=0||c.indexOf("user-not-found")>=0)return "Sai email hoặc mật khẩu.";
+    if(c.indexOf("operation-not-allowed")>=0)return "Chưa bật Email/Password trong Firebase (Authentication → Sign-in method).";
+    if(c.indexOf("configuration-not-found")>=0)return "Chưa bật Authentication trong Firebase. Vào Authentication → Get started → bật Email/Password.";
+    if(c.indexOf("unauthorized-domain")>=0)return "Tên miền chưa được cấp phép. Vào Authentication → Settings → Authorized domains → thêm phong11231.github.io.";
+    if(c.indexOf("network")>=0)return "Lỗi mạng, thử lại.";
+    if(c.indexOf("too-many-requests")>=0)return "Thử quá nhiều lần, đợi chút rồi thử lại.";
+    return (e&&e.message)||"Có lỗi, thử lại.";
+  }
+  function doAuth(mode){
+    var em=document.getElementById("email").value.trim(), pw=document.getElementById("pw").value;
+    var err=document.getElementById("aerr"); err.textContent="";
+    if(!em||!pw){err.textContent="Nhập email và mật khẩu."; return;}
+    var p=mode==="signup"?auth.createUserWithEmailAndPassword(em,pw):auth.signInWithEmailAndPassword(em,pw);
+    p.catch(function(e){err.textContent=authErr(e);});
+  }
+  document.getElementById("loginBtn").addEventListener("click",function(){doAuth("login");});
+  document.getElementById("signupBtn").addEventListener("click",function(){doAuth("signup");});
+  document.getElementById("pw").addEventListener("keydown",function(e){if(e.key==="Enter")doAuth("login");});
+
+  auth.onAuthStateChanged(function(user){
+    loadingView.hidden=true;
+    if(user){
+      uid=user.uid;
+      document.getElementById("userEmail").textContent=user.email;
+      authView.hidden=true; appView.hidden=false;
+      if(!built){buildGrid(); buildWeekOptions(); built=true;}
+      migrateAll().then(function(){ refresh(); });
+    } else {
+      uid=null; appView.hidden=true; authView.hidden=false;
+    }
+  });
 })();
 </script>
