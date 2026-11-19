@@ -203,7 +203,7 @@
       <button class="btn primary" id="loginBtn">Đăng nhập</button>
       <button class="btn" id="signupBtn">Đăng ký</button>
     </div>
-    <p class="anote">Lần đầu thì bấm <b>Đăng ký</b>. Dữ liệu lịch bạn đã điền sẵn trên máy sẽ tự được đưa lên tài khoản.</p>
+    <p class="anote">Lần đầu thì bấm <b>Đăng ký</b>. Lịch lưu trên tài khoản — mở máy nào cũng thấy.</p>
   </div>
 </div>
 
@@ -299,53 +299,12 @@
 
   /* ---------- data layer (Firestore + migrate from localStorage) ---------- */
   function weekDoc(wk){return db.collection("users").doc(uid).collection("weeks").doc(wk);}
-  function localWeek(wk){
-    try{
-      var prefer=localStorage.getItem(NS+"data:Mặc định:"+wk);
-      if(prefer){var a=JSON.parse(prefer); if(a&&a.length)return a;}
-      for(var i=0;i<localStorage.length;i++){
-        var k=localStorage.key(i);
-        if(k&&k.indexOf(NS+"data:")===0&&k.slice(-(wk.length+1))===":"+wk){
-          var b=JSON.parse(localStorage.getItem(k)||"[]"); if(b&&b.length)return b;
-        }
-      }
-    }catch(e){}
-    return null;
-  }
   function loadWeek(wk){
     return weekDoc(wk).get().then(function(s){
-      if(s.exists){return clean(s.data().blocks);}
-      var lb=localWeek(wk);
-      if(lb&&lb.length){var c=clean(lb); weekDoc(wk).set({blocks:c}); return c;}
-      return [];
-    }).catch(function(e){ console.warn(e); var lb=localWeek(wk); return clean(lb)||[]; });
+      return s.exists ? clean(s.data().blocks) : [];
+    }).catch(function(e){ console.warn(e); return []; });
   }
   function saveWeek(wk,blocks){ setSync("Đang lưu…"); return weekDoc(wk).set({blocks:clean(blocks)}).then(function(){setSync("Đã lưu ✓");}).catch(function(e){console.error(e); setSync("Lỗi lưu!");}); }
-  function migrateAll(){
-    try{
-      var flag=NS+"migrated:"+uid;
-      if(localStorage.getItem(flag))return Promise.resolve();
-      var weeks={};
-      for(var i=0;i<localStorage.length;i++){
-        var k=localStorage.key(i);
-        if(k&&k.indexOf(NS+"data:")===0){
-          var wk=k.slice(k.lastIndexOf(":")+1);
-          var a=JSON.parse(localStorage.getItem(k)||"[]");
-          if(a&&a.length&&!weeks[wk])weeks[wk]=a;
-        }
-      }
-      var keys=Object.keys(weeks);
-      if(!keys.length){localStorage.setItem(flag,"1"); return Promise.resolve();}
-      setSync("Đang đưa lịch cũ lên…");
-      var chain=Promise.resolve();
-      keys.forEach(function(wk){
-        chain=chain.then(function(){
-          return weekDoc(wk).get().then(function(s){ if(!s.exists) return weekDoc(wk).set({blocks:clean(weeks[wk])}); });
-        });
-      });
-      return chain.then(function(){localStorage.setItem(flag,"1"); setSync("Đã đồng bộ ✓");});
-    }catch(e){return Promise.resolve();}
-  }
   var syncT;
   function setSync(txt){var el=document.getElementById("sync"); if(!el)return; el.textContent=txt; clearTimeout(syncT); if(txt.indexOf("✓")>=0){syncT=setTimeout(function(){el.textContent="";},1500);}}
 
@@ -561,7 +520,7 @@
       document.getElementById("userEmail").textContent=user.email;
       authView.hidden=true; appView.hidden=false;
       if(!built){buildGrid(); buildWeekOptions(); built=true;}
-      migrateAll().then(function(){ refresh(); });
+      refresh();
     } else {
       uid=null; appView.hidden=true; authView.hidden=false;
     }
